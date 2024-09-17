@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  app:
+    build:
+      args:
+        user: trannguyenhan
+        uid: 1000
+      context: ./devops/
+      dockerfile: Dockerfile
+    image: laravel-app
+    restart: unless-stopped
+    working_dir: /var/www/html/
+    volumes:
+      - ./:/var/www/html/
+      - ./storage/app/public:/var/www/html/public/storage/
+    networks:
+      - tshirt
+  nginx:
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    ports:
+      - 8005:80
+    volumes:
+      - ./:/var/www/html
+      - ./nginx/conf.d:/etc/nginx/conf.d/
+      - ./storage/app/public:/var/www/html/public/storage/
+    networks:
+      - tshirt
+  db:
+    image: mysql
+    environment:
+      MYSQL_DATABASE: ecommerce_tshirt
+      MYSQL_ROOT_PASSWORD: mysql12345
+      MYSQL_USER: trannguyenhan
+      MYSQL_PASSWORD: mysql12345
+    ports: 
+      - "9906:3306"
+    volumes:
+      - ./db/:/docker-entrypoint-initdb.d/
+    networks:
+      - tshirt
+
+#Docker Networks
+networks:
+  tshirt:
+    driver: bridge
